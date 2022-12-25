@@ -1,5 +1,4 @@
-﻿using BenchmarkDotNet.Attributes;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -17,7 +16,6 @@ public class RpsGame : Game
     private SpriteBatch _spriteBatch;
     private List<GameObject> _playerObjects = new();
     private readonly Random rnd = new();
-    private Texture2D _texture;
     public static Texture2D Paper, Rock, Scissors;
     public static Rectangle GameBounds { get; set; } = new Rectangle(0,0,1920, 1080);
     public static Dictionary<RpsType, Texture2D> TypeTextures { get; set; } = new ();
@@ -33,7 +31,7 @@ public class RpsGame : Game
         _graphics = new GraphicsDeviceManager(this);
         _graphics.PreferredBackBufferWidth = GameBounds.Width;
         _graphics.PreferredBackBufferHeight = GameBounds.Height;
-        //_graphics.IsFullScreen = true;
+        _graphics.IsFullScreen = true;
         _graphics.ApplyChanges();
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
@@ -52,7 +50,7 @@ public class RpsGame : Game
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-        _texture = CreateTexture(GraphicsDevice, 32, 32, pixel => Color.White);
+        //_texture = CreateTexture(GraphicsDevice, 32, 32, pixel => Color.White);
         
         Rock = Content.Load<Texture2D>("gfx/Rock_32px");
         Paper = Content.Load<Texture2D>("gfx/Paper_32px");
@@ -68,7 +66,7 @@ public class RpsGame : Game
     {
         var location = new Vector2(rnd.Next(_graphics.PreferredBackBufferWidth), rnd.Next(_graphics.PreferredBackBufferHeight));
 
-        _playerObjects.Add(new GameObject(_texture) { Location = location, Speed = _speed });
+        _playerObjects.Add(new GameObject(TypeTextures[RpsType.Rock].Width) { Location = location, Speed = _speed });
     }
 
     protected override void Update(GameTime gameTime)

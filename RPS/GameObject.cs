@@ -1,12 +1,12 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Reflection.Metadata;
 
 namespace RPS;
 public class GameObject : IBounded
 {
 
+    public int Size { get; set; }
     private bool _wasJustConverted;
     private RpsType type;
 
@@ -26,13 +26,11 @@ public class GameObject : IBounded
 
     private static readonly Random rnd = new Random();
 
-    public Texture2D Texture { get; set; }
+    public Rectangle GetBounds() { return new Rectangle((int)Location.X - Size / 2, (int)Location.Y - Size / 2, Size, Size); }
 
-    public Rectangle GetBounds() { return new Rectangle((int)Location.X - Texture.Width / 2, (int)Location.Y - Texture.Height / 2, Texture.Width, Texture.Height); }
-
-    public GameObject(Texture2D texture)
+    public GameObject(int size)
     {
-        Texture = texture;
+        Size = size;
         RpsType = Enum.GetValues<RpsType>()[rnd.Next(Enum.GetValues<RpsType>().Length)];
         Direction = RandomDirectionInRadian();
     }
