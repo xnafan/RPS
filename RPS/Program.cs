@@ -1,3 +1,2 @@
-﻿
-using var game = new RPS.RpsGame();
+﻿using var game = new RPS.RpsGame();
 game.Run();

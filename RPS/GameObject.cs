@@ -10,16 +10,14 @@ public class GameObject : IBounded
     private bool _wasJustConverted;
     private RpsType type;
 
-    public RpsType GetType()
+    public RpsType RpsType
     {
-        return type;
-    }
-
-    public void SetType(RpsType value)
-    {
-        if (value == type) return;
-        type = value;
-        _wasJustConverted= true;
+        get { return type; }
+        set {
+            if (value == type) return;
+            type = value;
+            _wasJustConverted = true;
+        }
     }
 
     public Vector2 Location { get; set; }
@@ -35,7 +33,7 @@ public class GameObject : IBounded
     public GameObject(Texture2D texture)
     {
         Texture = texture;
-        SetType(Enum.GetValues<RpsType>()[rnd.Next(Enum.GetValues<RpsType>().Length)]);
+        RpsType = Enum.GetValues<RpsType>()[rnd.Next(Enum.GetValues<RpsType>().Length)];
         Direction = RandomDirectionInRadian();
     }
 
@@ -45,7 +43,7 @@ public class GameObject : IBounded
         if (_wasJustConverted) { bounds.Size = new Point(bounds.Width + 8, bounds.Height+ 8); }
         bounds.Offset(-4, -4);
             _wasJustConverted = false;
-        spriteBatch.Draw(RpsGame.TypeTextures[GetType()], bounds, Color.White);
+        spriteBatch.Draw(RpsGame.TypeTextures[RpsType], bounds, Color.White);
     }
 
     public void Update(GameTime gameTime)
@@ -75,12 +73,12 @@ public class GameObject : IBounded
 
     private Color GetColor()
     {
-        switch (GetType())
+        switch (RpsType)
         {
             case RpsType.Paper: return Color.White;
             case RpsType.Scissors: return Color.Silver;
             case RpsType.Rock: return Color.Black;
         }
-        throw new Exception($"{GetType()} is invalid type.");
+        throw new Exception($"{RpsType} is invalid type.");
     }
 }

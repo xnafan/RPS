@@ -1,8 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+﻿using BenchmarkDotNet.Attributes;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -21,28 +24,36 @@ public class RpsGame : Game
     private SpriteFont _font;
     private string _status = "";
     private static StringBuilder _builder = new StringBuilder ();
-    private GamePartitioningHelper<GameObject> _partitioningHelper = new GamePartitioningHelper<GameObject>(GameBounds,4);
-
+    private GamePartitioningHelper<GameObject> _partitioningHelper = new GamePartitioningHelper<GameObject>(GameBounds,6);
+    private RpsType[] _typeToConvertTo;
+    private int _numberOfGameObjects = 1000;
+    Stopwatch _stopWatch;
     public RpsGame()
     {
         _graphics = new GraphicsDeviceManager(this);
         _graphics.PreferredBackBufferWidth = GameBounds.Width;
         _graphics.PreferredBackBufferHeight = GameBounds.Height;
-        _graphics.IsFullScreen = true;
+        //_graphics.IsFullScreen = true;
         _graphics.ApplyChanges();
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
 
     }
+
+    public void NewGame()
+    {
+        _playerObjects.Clear();
+        _typeToConvertTo = new RpsType[_numberOfGameObjects];
+        for (int i = 0; i < _numberOfGameObjects; i++)
+        {
+            AddRandomPlayerObject();
+        }
+    }
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _texture = CreateTexture(GraphicsDevice, 32, 32, pixel => Color.White);
-        for (int i = 0; i < 1200; i++)
-        {
-            AddRandomPlayerObject();
-        }
-
+        
         Rock = Content.Load<Texture2D>("gfx/Rock_32px");
         Paper = Content.Load<Texture2D>("gfx/Paper_32px");
         Scissors = Content.Load<Texture2D>("gfx/Scissors_32px");
@@ -50,6 +61,7 @@ public class RpsGame : Game
         TypeTextures.Add(RpsType.Paper, Paper);
         TypeTextures.Add(RpsType.Scissors, Scissors);
         _font = Content.Load<SpriteFont>("Font");
+        NewGame();
     } 
 
     private void AddRandomPlayerObject()
@@ -61,23 +73,38 @@ public class RpsGame : Game
 
     protected override void Update(GameTime gameTime)
     {
+        _stopWatch = Stopwatch.StartNew();
         if (Keyboard.GetState().IsKeyDown(Keys.Escape))Exit();
+        if (Keyboard.GetState().IsKeyDown(Keys.F5)) NewGame();
+        if (Keyboard.GetState().IsKeyDown(Keys.Add)) { _numberOfGameObjects += 100; NewGame(); };
+        if (Keyboard.GetState().IsKeyDown(Keys.Subtract)) { _numberOfGameObjects -= 100; NewGame(); };
 
         _partitioningHelper.Update(_playerObjects);
 
+        int index = 0;
         foreach (var obj in _playerObjects)
         {
             obj.Update(gameTime);
-            var collisions = GetCollisions(_playerObjects, obj);
+            var collisions = _partitioningHelper.GetCollisions(obj);
+            //Debug.WriteLine("collisions:" + collisions.Count());
             foreach (var collisionItem in collisions)
+            //var collisionItem = collisions.FirstOrDefault();
+            //if(collisionItem!= null)
             {
-                if(obj.GetType() == RpsType.Rock && collisionItem.GetType() == RpsType.Paper) { obj.SetType(RpsType.Paper); }
-                else if (obj.GetType() == RpsType.Paper && collisionItem.GetType() == RpsType.Scissors) { obj.SetType(RpsType.Scissors); }
-                else if (obj.GetType() == RpsType.Scissors&& collisionItem.GetType() == RpsType.Rock) { obj.SetType(RpsType.Rock); }
+                if(obj.RpsType == RpsType.Rock && collisionItem.RpsType == RpsType.Paper) { _typeToConvertTo[index] = RpsType.Paper;}
+                else if (obj.RpsType == RpsType.Paper && collisionItem.RpsType == RpsType.Scissors) { _typeToConvertTo[index] = RpsType.Scissors;  }
+                else if (obj.RpsType == RpsType.Scissors&& collisionItem.RpsType == RpsType.Rock) { _typeToConvertTo[index] = RpsType.Rock;}
             }
-        }
+            index++;
 
-        var count = _playerObjects.GroupBy(x => x.GetType()).Select(group => new {
+              //  _partitioningHelper.Remove(obj); 
+
+        }
+        for (int i = 0; i < _numberOfGameObjects; i++)
+        {
+            _playerObjects[i].RpsType = _typeToConvertTo[i];
+        }
+        var count = _playerObjects.GroupBy(x => x.RpsType).Select(group => new {
             Metric = group.Key,
             Count = group.Count()
         }).ToList();
@@ -85,28 +112,21 @@ public class RpsGame : Game
         _builder.Clear();
         count.ForEach(c => _builder.Append(c.Metric + ":" + c.Count + Environment.NewLine));
         _status = _builder.ToString();
+        _stopWatch.Stop();
+        Debug.WriteLine("update: " + _stopWatch.ElapsedMilliseconds);
     }
 
-    private IEnumerable<GameObject> GetCollisions(List<GameObject> playerObjects, GameObject player)
-    {
-        foreach (var obj in _partitioningHelper.GetCollisionCandidates(player))
-        {
-            if (player.GetBounds().Intersects(obj.GetBounds()) && player != obj)
-            {
-                yield return obj;
-            }
-        }
-    }
-
+    
     protected override void Draw(GameTime gameTime)
     {
+        _stopWatch = new Stopwatch();
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin();
         _playerObjects.ForEach(obj => obj.Draw(_spriteBatch, gameTime));
         DrawWithOutline();
-
         _spriteBatch.End();
-
+        _stopWatch.Stop();
+        Debug.WriteLine("draw: " + _stopWatch.ElapsedMilliseconds);
     }
 
     private void DrawWithOutline()
