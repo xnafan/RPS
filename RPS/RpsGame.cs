@@ -11,8 +11,6 @@ using System.Text;
 namespace RPS;
 public class RpsGame : Game
 {
-    //TODO: avoidance- and hunt behavior
-
     #region Properties
     private const double _speed = .1;
     private GraphicsDeviceManager _graphics;
@@ -38,6 +36,7 @@ public class RpsGame : Game
         _graphics = new GraphicsDeviceManager(this);
         _graphics.PreferredBackBufferWidth = ScreenResolution.Width;
         _graphics.PreferredBackBufferHeight = ScreenResolution.Height;
+        _graphics.IsFullScreen = true;
         _graphics.ApplyChanges();
         Content.RootDirectory = "Content";
         IsMouseVisible = false;
