@@ -16,8 +16,8 @@ The [GameObject](https://github.com/xnafan/RPS/blob/master/RPS/Model/GameObject.
 
 # Keyboard overview
 
-* F5 : Restart game
-* F11 : Toggle fullscreen
-* '+' : Add 100 game objects and restart
-* '-' : Remove 100 game objects and restart
-* 'I' : toggle intelligent behavior (hunt/flee)
+F5 : Restart game
+F11 : Toggle fullscreen
+'+' : Add 100 game objects and restart
+'-' : Remove 100 game objects and restart
+'I' : toggle intelligent behavior (hunt/flee)
