@@ -13,7 +13,8 @@ public class GameObject : IBounded
     public RpsType RpsType
     {
         get { return type; }
-        set {
+        set
+        {
             if (value == type) return;
             type = value;
             _wasJustConverted = true;
@@ -37,21 +38,24 @@ public class GameObject : IBounded
 
     public void Draw(SpriteBatch spriteBatch, GameTime gameTime)
     {
-        var bounds = GetBounds();
-        if (_wasJustConverted) { bounds.Size = new Point(bounds.Width + 8, bounds.Height+ 8); }
-        bounds.Offset(-4, -4);
-            _wasJustConverted = false;
-        spriteBatch.Draw(RpsGame.TypeTextures[RpsType], bounds, Color.White);
+        var pulseBounds = GetBounds();
+        if (_wasJustConverted) { pulseBounds.Size = new Point(pulseBounds.Width + pulseBounds.Width / 4, pulseBounds.Height + pulseBounds.Width / 4); }
+        pulseBounds.Offset(-pulseBounds.Width / 4, -pulseBounds.Width / 4);
+        _wasJustConverted = false;
+        spriteBatch.Draw(RpsGame.TypeTextures[RpsType], pulseBounds, Color.White);
     }
 
     public void Update(GameTime gameTime)
     {
-        Vector2 newLocation = new Vector2(-1, -1);
-        while (!RpsGame.GameBounds.Contains((int)newLocation.X, (int)newLocation.Y))
+        Vector2 newLocation;
+        Rectangle newBounds = GetBounds();
+        do
         {
-            newLocation = Location + AngleInRadianToVector2(Direction) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * (float)Speed;
             TurnSlightly();
+            newLocation = Location + AngleInRadianToVector2(Direction) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * (float)Speed;
+            newBounds.Offset(newLocation - Location);
         }
+        while (!RpsGame.GameBounds.Contains(newBounds));
         Location = newLocation;
     }
 

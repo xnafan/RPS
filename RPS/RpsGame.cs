@@ -28,6 +28,7 @@ public class RpsGame : Game
     private static StringBuilder _builder = new StringBuilder();
     private GamePartitioningHelper<GameObject> _partitioningHelper = new GamePartitioningHelper<GameObject>(GameBounds, 5);
     private int _numberOfGameObjects = 1000;
+    private Color _paperColor = new Color(0, 224, 213), _rockColor = new Color(255, 232, 74), _scissorsColor = new Color(241, 186, 244);
     #endregion
 
     #region Constructor and initialization
@@ -36,7 +37,7 @@ public class RpsGame : Game
         _graphics = new GraphicsDeviceManager(this);
         _graphics.PreferredBackBufferWidth = ScreenResolution.Width;
         _graphics.PreferredBackBufferHeight = ScreenResolution.Height;
-        _graphics.IsFullScreen = true;
+        //_graphics.IsFullScreen = true;
         _graphics.ApplyChanges();
         Content.RootDirectory = "Content";
         IsMouseVisible = false;
@@ -46,7 +47,7 @@ public class RpsGame : Game
         _gameObjects.Clear();
         for (int i = 0; i < _numberOfGameObjects; i++)
         {
-            var location = new Vector2(rnd.Next(GameBounds.Width), rnd.Next(GameBounds.Height));
+            var location = new Vector2((int)(GameBounds.Width * .1f) + rnd.Next((int)(GameBounds.Width*.8f)), (int)(GameBounds.Height * .1f) + rnd.Next((int)(GameBounds.Height * .8f)));
 
             _gameObjects.Add(new GameObject(TypeTextures[RpsType.Rock].Width) { Location = location, Speed = _speed });
         }
@@ -93,7 +94,6 @@ public class RpsGame : Game
         GraphicsDevice.Clear(Color.Black);
         _spriteBatch.Begin();
         _gameObjects.ForEach(obj => obj.Draw(_spriteBatch, gameTime));
-        WriteStatus();
         DrawStatusPanel();
         _spriteBatch.End();
     }
@@ -103,59 +103,60 @@ public class RpsGame : Game
         var panelWidth = ScreenResolution.Width / 5;
         var panelHeight = ScreenResolution.Height;
         _spriteBatch.Draw(Tile, new Rectangle(GameBounds.Right, 0, panelWidth, panelHeight), Color.ForestGreen);
+
         float numberOfRocks = _gameObjects.Count(obj => obj.RpsType == RpsType.Rock);
-        float numberOfPaper =  _gameObjects.Count(obj => obj.RpsType == RpsType.Paper);
+        float numberOfPaper = _gameObjects.Count(obj => obj.RpsType == RpsType.Paper);
         float numberOfScissors = _numberOfGameObjects - (numberOfRocks + numberOfPaper);
-        var pctOfRock = numberOfRocks / _numberOfGameObjects;
-        var pctOfPaper = numberOfPaper / _numberOfGameObjects;
-        var pctOfScissors = numberOfScissors / _numberOfGameObjects;
-
-        var bottomOfBars = ScreenResolution.Height * .9f;
-        var maxHeightOfBars = ScreenResolution.Height * .7f;
-
-        int heightOfRockInPixels = (int)(maxHeightOfBars * pctOfRock);
-        int heightOfPaperInPixels = (int)(maxHeightOfBars * pctOfPaper);
-        int heightOfScissorsInPixels = (int)(maxHeightOfBars * pctOfScissors);
-
+        
         int widthOfBars = (int)(panelWidth / 7f);
 
-        _spriteBatch.Draw(Tile, new Rectangle(GameBounds.Right + widthOfBars, (int)(bottomOfBars - heightOfRockInPixels), widthOfBars, (int)heightOfRockInPixels), Color.Yellow);
-        _spriteBatch.Draw(Rock, new Rectangle(GameBounds.Right + widthOfBars, (int)(bottomOfBars - heightOfRockInPixels)-widthOfBars, widthOfBars, widthOfBars), Color.White);
+        int leftOfRockBar = GameBounds.Right + widthOfBars;
+        int leftOfPaperBar = GameBounds.Right + widthOfBars * 3;
+        int leftOfScissorsBar = GameBounds.Right + widthOfBars * 5;
 
-        _spriteBatch.Draw(Tile, new Rectangle(GameBounds.Right + widthOfBars*3, (int)(bottomOfBars - heightOfPaperInPixels), widthOfBars, (int)heightOfPaperInPixels), Color.LightBlue);
-        _spriteBatch.Draw(Paper, new Rectangle(GameBounds.Right + widthOfBars*3, (int)(bottomOfBars - heightOfPaperInPixels) - widthOfBars, widthOfBars, widthOfBars), Color.White);
+        DrawBar((int)numberOfRocks, Rock, _rockColor, leftOfRockBar, widthOfBars);
 
-        _spriteBatch.Draw(Tile, new Rectangle(GameBounds.Right + widthOfBars*5, (int)(bottomOfBars - heightOfScissorsInPixels), widthOfBars, (int)heightOfScissorsInPixels), Color.LightPink);
-        _spriteBatch.Draw(Scissors, new Rectangle(GameBounds.Right + widthOfBars*5, (int)(bottomOfBars - heightOfScissorsInPixels) - widthOfBars, widthOfBars, widthOfBars), Color.White);
+        DrawBar((int)numberOfPaper, Paper, _paperColor, leftOfPaperBar, widthOfBars);
 
-
-
-
+        DrawBar((int)numberOfScissors, Scissors, _scissorsColor, leftOfScissorsBar, widthOfBars);
 
     }
 
-    private void WriteStatus()
+    private void DrawBar(int amount, Texture2D texture, Color color, int leftOfBar, int widthOfBars)
     {
-        var count = _gameObjects.GroupBy(x => x.RpsType).Select(group => new
-        {
-            Metric = group.Key,
-            Count = group.Count()
-        }).ToList();
+        var bottomOfBars = ScreenResolution.Height * .95f;
+        var maxHeightOfBars = ScreenResolution.Height * .85f;
+        var percentage = amount / (float)_numberOfGameObjects;
 
-        _builder.Clear();
-        count.ForEach(c => _builder.Append(c.Metric + ":" + c.Count + Environment.NewLine));
-        DrawWithOutline(_builder.ToString());
+        int heightOfBar = (int)(maxHeightOfBars * percentage);
+        int topOfBar = (int)(bottomOfBars - heightOfBar) - widthOfBars;
+
+        var border = 2;
+        _spriteBatch.Draw(Tile, new Rectangle(leftOfBar-border, (int)(bottomOfBars - heightOfBar  - widthOfBars) - border, widthOfBars+border *2, (int)heightOfBar  + widthOfBars + border*2), Color.Black);
+        _spriteBatch.Draw(Tile, new Rectangle(leftOfBar, (int)(bottomOfBars - heightOfBar), widthOfBars, (int)heightOfBar), color);
+        _spriteBatch.Draw(texture, new Rectangle(leftOfBar, topOfBar, widthOfBars, widthOfBars), Color.White);
+
+        WriteCentered(amount.ToString(), new Vector2(leftOfBar + widthOfBars / 2, topOfBar - widthOfBars / 2), Color.White, true);
+
+        //WriteCentered(((int)(percentage*100)) + "%", new Vector2(leftOfBar + widthOfBars / 2, bottomOfBars + widthOfBars), Color.White, true);
     }
-    private void DrawWithOutline(string text)
+    private void WriteCentered(string text, Vector2 location, Color color, bool shadow = false)
     {
-        for (int x = -1; x <= 1; x++)
+        var textSize = _font.MeasureString(text);
+        var actualLocation = location - textSize / 2;
+
+        if (shadow)
         {
-            for (int y = -1; y <= 1; y++)
+            for (int x = -1; x <= 1; x++)
             {
-                _spriteBatch.DrawString(_font, text, Vector2.One * 10 + new Vector2(x, y), Color.Black);
+                for (int y = -1; y <= 1; y++)
+                {
+                    _spriteBatch.DrawString(_font, text, actualLocation + new Vector2(x, y), Color.Black);
+                }
             }
         }
-        _spriteBatch.DrawString(_font, text, Vector2.One * 10, Color.White);
-    } 
+
+        _spriteBatch.DrawString(_font, text, actualLocation, color);
+    }
     #endregion
 }
