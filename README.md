@@ -1,6 +1,6 @@
 # RPS
-A simple Rock-Paper-Scissors simulation.
-The icons move around and the loser in every collision is changed to the winner's type.
+A Rock-Paper-Scissors simulation.
+The icons move around and the loser in every collision is changed to the winner's type. You can toggle between random or hunt/flee behavior.
 
 <img width="961" alt="image" src="https://user-images.githubusercontent.com/3811290/209578444-683c1997-9fa2-45fd-9c14-b607a69af453.png">
 
