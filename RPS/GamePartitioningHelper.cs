@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using RPS.Model;
 using System.Collections.Generic;
 using System.Linq;
 

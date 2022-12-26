@@ -1,18 +1,15 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using RPS.Model;
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 namespace RPS;
 public class RpsGame : Game
 {
-
     //TODO: avoidance- and hunt behavior
-    //      bar graph showing current distribution of R/P/S
 
     #region Properties
     private const double _speed = .1;

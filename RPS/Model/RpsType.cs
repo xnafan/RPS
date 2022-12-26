@@ -1,4 +1,4 @@
-﻿namespace RPS
+﻿namespace RPS.Model
 {
     public enum RpsType
     {

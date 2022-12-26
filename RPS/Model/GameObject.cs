@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
-namespace RPS;
+namespace RPS.Model;
 public class GameObject : IBounded
 {
 
@@ -47,10 +47,11 @@ public class GameObject : IBounded
 
     public void Update(GameTime gameTime)
     {
+        Rectangle newBounds;
         Vector2 newLocation;
-        Rectangle newBounds = GetBounds();
         do
         {
+            newBounds = GetBounds();
             TurnSlightly();
             newLocation = Location + AngleInRadianToVector2(Direction) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * (float)Speed;
             newBounds.Offset(newLocation - Location);
@@ -61,7 +62,7 @@ public class GameObject : IBounded
 
     private void TurnSlightly()
     {
-        var randomDirectionChangeInRadians = (rnd.NextDouble() * Math.PI / 8) - Math.PI / 16;
+        var randomDirectionChangeInRadians = rnd.NextDouble() * Math.PI / 8 - Math.PI / 16;
         Direction += randomDirectionChangeInRadians;
     }
     private Vector2 AngleInRadianToVector2(double angleInRadian)
