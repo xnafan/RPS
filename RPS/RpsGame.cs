@@ -26,6 +26,7 @@ public class RpsGame : Game
     private GamePartitioningHelper<GameObject> _partitioningHelper = new GamePartitioningHelper<GameObject>(GameBounds, 5);
     private int _numberOfGameObjects = 1000;
     private Color _paperColor = new Color(0, 224, 213), _rockColor = new Color(255, 232, 74), _scissorsColor = new Color(241, 186, 244);
+    private KeyboardState _previousState;
     #endregion
 
     #region Constructor and initialization
@@ -34,7 +35,6 @@ public class RpsGame : Game
         _graphics = new GraphicsDeviceManager(this);
         _graphics.PreferredBackBufferWidth = ScreenResolution.Width;
         _graphics.PreferredBackBufferHeight = ScreenResolution.Height;
-        //_graphics.IsFullScreen = true;
         _graphics.ApplyChanges();
         Content.RootDirectory = "Content";
         IsMouseVisible = false;
@@ -65,10 +65,16 @@ public class RpsGame : Game
 
     #endregion
 
+    #region Update and related
     protected override void Update(GameTime gameTime)
     {
-        if (Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
-        if (Keyboard.GetState().IsKeyDown(Keys.F5)) NewGame();
+        KeyboardState keyboardState = Keyboard.GetState();
+        if (keyboardState.IsKeyDown(Keys.Escape)) Exit();
+        if (keyboardState.IsKeyDown(Keys.F5)) NewGame();
+        if (keyboardState.IsKeyDown(Keys.F11) && _previousState.IsKeyUp(Keys.F11))
+        {
+            ToggleFullScreen();
+        }
 
         _partitioningHelper.Update(_gameObjects);
         foreach (var obj in _gameObjects)
@@ -83,7 +89,15 @@ public class RpsGame : Game
                 else if (obj.RpsType == RpsType.Scissors && collisionItem.RpsType == RpsType.Rock) { obj.RpsType = RpsType.Rock; _partitioningHelper.Remove(obj); }
             }
         }
+        _previousState = keyboardState;
     }
+
+    private void ToggleFullScreen()
+    {
+        _graphics.IsFullScreen = !_graphics.IsFullScreen;
+        _graphics.ApplyChanges();
+    } 
+    #endregion
 
     #region Draw and related
     protected override void Draw(GameTime gameTime)

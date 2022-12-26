@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
-namespace RPS;
+
+namespace RPS.Model;
 public interface IBounded
 {
     Rectangle GetBounds();

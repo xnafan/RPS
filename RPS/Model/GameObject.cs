@@ -1,15 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-
 namespace RPS.Model;
 public class GameObject : IBounded
 {
-
+    #region Properties
     public int Size { get; set; }
     private bool _wasJustConverted;
     private RpsType type;
-
     public RpsType RpsType
     {
         get { return type; }
@@ -20,14 +18,14 @@ public class GameObject : IBounded
             _wasJustConverted = true;
         }
     }
-
     public Vector2 Location { get; set; }
     public double Direction { get; set; }
     public double Speed { get; set; }
 
     private static readonly Random rnd = new Random();
 
-    public Rectangle GetBounds() { return new Rectangle((int)Location.X - Size / 2, (int)Location.Y - Size / 2, Size, Size); }
+    public Rectangle GetBounds() { return new Rectangle((int)Location.X - Size / 2, (int)Location.Y - Size / 2, Size, Size); } 
+    #endregion
 
     public GameObject(int size)
     {
@@ -72,16 +70,5 @@ public class GameObject : IBounded
     private double RandomDirectionInRadian()
     {
         return rnd.NextDouble() * Math.PI * 2;
-    }
-
-    private Color GetColor()
-    {
-        switch (RpsType)
-        {
-            case RpsType.Paper: return Color.White;
-            case RpsType.Scissors: return Color.Silver;
-            case RpsType.Rock: return Color.Black;
-        }
-        throw new Exception($"{RpsType} is invalid type.");
     }
 }
