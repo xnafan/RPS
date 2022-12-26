@@ -2,8 +2,10 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using RPS.Model;
+using RPS.Tools;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 namespace RPS;
@@ -24,9 +26,10 @@ public class RpsGame : Game
     private SpriteFont _font;
     private static StringBuilder _builder = new StringBuilder();
     private GamePartitioningHelper<GameObject> _partitioningHelper = new GamePartitioningHelper<GameObject>(GameBounds, 5);
-    private int _numberOfGameObjects = 1000;
+    private int _numberOfGameObjects = 500;
     private Color _paperColor = new Color(0, 224, 213), _rockColor = new Color(255, 232, 74), _scissorsColor = new Color(241, 186, 244);
     private KeyboardState _previousState;
+    private bool _intelligentBehavior = true;
     #endregion
 
     #region Constructor and initialization
@@ -68,6 +71,57 @@ public class RpsGame : Game
     #region Update and related
     protected override void Update(GameTime gameTime)
     {
+        CheckKeyboardInputAndReact();
+
+        _partitioningHelper.Update(_gameObjects);
+        foreach (var obj in _gameObjects)
+        {
+            var collisions = HandleCollisions(obj);
+            if (_intelligentBehavior)
+            {
+                ChangeDirectionForHuntAndAvoidance(obj, collisions); 
+            }
+            obj.Update(gameTime);
+        }
+    }
+
+    private void ChangeDirectionForHuntAndAvoidance(GameObject obj, IEnumerable<GameObject> collisions)
+    {
+        var collisionCandidates = _partitioningHelper.GetCollisionCandidates(obj);
+        var nonCollisionObjectsOfOtherTypes = collisionCandidates.Except(collisions).Where(otherObj => otherObj.RpsType != obj.RpsType);
+        if(!nonCollisionObjectsOfOtherTypes.Any(otherObj => otherObj.RpsType != obj.RpsType)) {return;}
+        var closestNonCollisionNeighbor = nonCollisionObjectsOfOtherTypes.OrderBy(otherObj => Math.Abs(otherObj.Location.X - obj.Location.X) + Math.Abs(otherObj.Location.Y - obj.Location.Y)).First();
+        if (obj.RpsType.Beats(closestNonCollisionNeighbor.RpsType))
+        {
+            obj.Direction = DirectionTo(obj.Location, closestNonCollisionNeighbor.Location);
+        }
+        else
+        {
+            obj.Direction = DirectionTo(closestNonCollisionNeighbor.Location, obj.Location);
+        }
+    }
+
+    private double DirectionTo(Vector2 from, Vector2 to)
+    {
+        var angleVector = to - from;
+        return Math.Atan2(angleVector.Y, angleVector.X);
+    }
+
+    private IEnumerable<GameObject> HandleCollisions(GameObject obj)
+    {
+        var collisions = _partitioningHelper.GetCollisions(obj);
+        var collisionItem = collisions.FirstOrDefault(colObj => colObj.RpsType != obj.RpsType);
+        if (collisionItem != null)
+        {
+            if (obj.RpsType == RpsType.Rock && collisionItem.RpsType == RpsType.Paper) { obj.RpsType = RpsType.Paper; _partitioningHelper.Remove(obj); }
+            else if (obj.RpsType == RpsType.Paper && collisionItem.RpsType == RpsType.Scissors) { obj.RpsType = RpsType.Scissors; _partitioningHelper.Remove(obj); }
+            else if (obj.RpsType == RpsType.Scissors && collisionItem.RpsType == RpsType.Rock) { obj.RpsType = RpsType.Rock; _partitioningHelper.Remove(obj); }
+        }
+        return collisions;
+    }
+
+    private void CheckKeyboardInputAndReact()
+    {
         KeyboardState keyboardState = Keyboard.GetState();
         if (keyboardState.IsKeyDown(Keys.Escape)) Exit();
         if (keyboardState.IsKeyDown(Keys.F5)) NewGame();
@@ -75,19 +129,19 @@ public class RpsGame : Game
         {
             ToggleFullScreen();
         }
-
-        _partitioningHelper.Update(_gameObjects);
-        foreach (var obj in _gameObjects)
+        if (keyboardState.IsKeyDown(Keys.Add) && _previousState.IsKeyUp(Keys.Add))
         {
-            obj.Update(gameTime);
-            var collisions = _partitioningHelper.GetCollisions(obj);
-            var collisionItem = collisions.FirstOrDefault(colObj => colObj.RpsType != obj.RpsType);
-            if (collisionItem != null)
-            {
-                if (obj.RpsType == RpsType.Rock && collisionItem.RpsType == RpsType.Paper) { obj.RpsType = RpsType.Paper; _partitioningHelper.Remove(obj); }
-                else if (obj.RpsType == RpsType.Paper && collisionItem.RpsType == RpsType.Scissors) { obj.RpsType = RpsType.Scissors; _partitioningHelper.Remove(obj); }
-                else if (obj.RpsType == RpsType.Scissors && collisionItem.RpsType == RpsType.Rock) { obj.RpsType = RpsType.Rock; _partitioningHelper.Remove(obj); }
-            }
+            _numberOfGameObjects += 100;
+            NewGame();
+        }
+        if (keyboardState.IsKeyDown(Keys.OemMinus) && _previousState.IsKeyUp(Keys.OemMinus))
+        {
+            _numberOfGameObjects -= 100;
+            NewGame();
+        }
+        if (keyboardState.IsKeyDown(Keys.I) && _previousState.IsKeyUp(Keys.I))
+        {
+            _intelligentBehavior = !_intelligentBehavior;
         }
         _previousState = keyboardState;
     }

@@ -3,8 +3,8 @@ using RPS.Model;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RPS;
-public class GamePartitioningHelper <T>  where T : IBounded
+namespace RPS.Tools;
+public class GamePartitioningHelper<T> where T : IBounded
 {
 
     public Rectangle GameBounds { get; set; }
@@ -19,7 +19,7 @@ public class GamePartitioningHelper <T>  where T : IBounded
         var widthPartitions = partitionsPerSide;
         var heightPartitions = partitionsPerSide;
         var widthOfPartition = GameBounds.Width / widthPartitions;
-        var heightOfPartition = GameBounds.Height/ heightPartitions;
+        var heightOfPartition = GameBounds.Height / heightPartitions;
         for (int x = 0; x < widthPartitions; x++)
         {
             for (int y = 0; y < heightPartitions; y++)
@@ -39,7 +39,7 @@ public class GamePartitioningHelper <T>  where T : IBounded
         {
             foreach (var partition in GetIntersections(item))
             {
-                    PartitionContents[partition].Add(item); 
+                PartitionContents[partition].Add(item);
             }
         }
     }

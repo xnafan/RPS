@@ -71,4 +71,9 @@ public class GameObject : IBounded
     {
         return rnd.NextDouble() * Math.PI * 2;
     }
+
+    public override string ToString()
+    {
+        return $"{RpsType} at ({Location.X.ToString("0.0")},{Location.Y.ToString("0.0")})";
+    }
 }
