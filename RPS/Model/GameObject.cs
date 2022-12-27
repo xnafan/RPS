@@ -31,7 +31,7 @@ public class GameObject : IBounded
     {
         Size = size;
         RpsType = Enum.GetValues<RpsType>()[rnd.Next(Enum.GetValues<RpsType>().Length)];
-        Direction = RandomDirectionInRadian();
+        Direction = GetRandomDirectionInRadian();
     }
 
     public void Draw(SpriteBatch spriteBatch, GameTime gameTime)
@@ -40,7 +40,7 @@ public class GameObject : IBounded
         if (_wasJustConverted) { pulseBounds.Size = new Point(pulseBounds.Width + pulseBounds.Width / 4, pulseBounds.Height + pulseBounds.Width / 4); }
         pulseBounds.Offset(-pulseBounds.Width / 4, -pulseBounds.Width / 4);
         _wasJustConverted = false;
-        spriteBatch.Draw(RpsGame.TypeTextures[RpsType], pulseBounds, Color.White);
+        spriteBatch.Draw(Graphics.TypeTextures[RpsType], pulseBounds, Color.White);
     }
 
     public void Update(GameTime gameTime)
@@ -54,7 +54,7 @@ public class GameObject : IBounded
             newLocation = Location + AngleInRadianToVector2(Direction) * (float)gameTime.ElapsedGameTime.TotalMilliseconds * (float)Speed;
             newBounds.Offset(newLocation - Location);
         }
-        while (!RpsGame.GameBounds.Contains(newBounds));
+        while (!Graphics.GameBounds.Contains(newBounds));
         Location = newLocation;
     }
 
@@ -67,7 +67,7 @@ public class GameObject : IBounded
     {
         return new Vector2(MathF.Cos((float)angleInRadian), MathF.Sin((float)angleInRadian));
     }
-    private double RandomDirectionInRadian()
+    private double GetRandomDirectionInRadian()
     {
         return rnd.NextDouble() * Math.PI * 2;
     }
